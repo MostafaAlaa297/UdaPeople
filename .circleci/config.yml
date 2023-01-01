@@ -39,8 +39,8 @@ jobs:
           paths: [backend/node_modules]
           key: backend-build
       - slack/notify:
-          event: fail
-          template: basic_fail_1
+          event: pass
+          template: success_tagged_deploy_1
 
   test-frontend:
     docker:
