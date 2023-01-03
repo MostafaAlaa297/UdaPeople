@@ -151,7 +151,7 @@ jobs:
 
   configure-infrastructure:
       docker:
-        - image: cimg/base:stable
+        - image: python:3.7-alpine3.11
       steps:
         - checkout
         - add_ssh_keys:
@@ -161,8 +161,7 @@ jobs:
         - run:
             name: Install dependencies
             command: |
-              sudo apt-get install ansible -y
-              sudo apt-get install awscli
+              apk add --update ansible
         - run:
             name: Configure server
             command: |
