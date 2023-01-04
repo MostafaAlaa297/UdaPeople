@@ -163,6 +163,7 @@ jobs:
             command: |
               apt-get update -y
               apt install tar gzip ansible -y
+              pip install --upgrade pip
               pip install awscli
         - run:
             name: Configure server
