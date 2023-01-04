@@ -24,15 +24,15 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
-      to:
-        default: "aws cloudformation delete-stack --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7}"   
+      workflow_id:   
         type: string
     steps:
       - run:
           name: Destroy environments
           when: on_fail
           command: |
-            <<parameters.to>>
+            echo "Destroying environment: << parameters.workflow_id >> "
+            aws cloudformation delete-stack --stack-name myStack-<< parameters.workflow_id >>"
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -245,8 +245,8 @@ workflows:
               only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
       # - deploy-frontend:
       #     requires: [run-migrations]
       # - deploy-backend:
