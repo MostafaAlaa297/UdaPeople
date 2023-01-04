@@ -142,7 +142,6 @@ jobs:
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --output text)
             echo $BACKEND_IP >> .circleci/ansible/inventory.txt
-            echo "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" >> .circleci/ansible/inventory.txt
       - run: yum install -y tar gzip
       - persist_to_workspace:
           root: ~/
@@ -152,7 +151,7 @@ jobs:
 
   configure-infrastructure:
       docker:
-        - image: python:latest
+        - image: python:3.7-alpine3.11
       steps:
         - checkout
         - add_ssh_keys:
@@ -162,9 +161,7 @@ jobs:
         - run:
             name: Install dependencies
             command: |
-              apt-get update -y
-              apt install tar gzip ansible -y
-              pip install --upgrade pip
+              apk add --update tar gzip ansible
               pip install awscli
         - run:
             name: Configure server
