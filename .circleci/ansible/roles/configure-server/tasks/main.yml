@@ -1,28 +1,37 @@
-- name: "update apt packages."
+---
+- name: "Add Node.js from Nodesource"
   become: true
-  apt:
-    update_cache: yes
-
-- name: "upgrade packages"
-  become: true
-  apt:
-    upgrade: yes
+  shell: |
+    curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
 
 
-- name: remove dependencies that are no longer required
-  become: true
-  apt:
-    autoremove: yes
+# - name: "update apt packages."
+#   become: true
+#   apt:
+#     update_cache: yes
 
-- name: "install dependencies."
+# - name: "upgrade packages"
+#   become: true
+#   apt:
+#     upgrade: yes
+
+
+# - name: remove dependencies that are no longer required
+#   become: true
+#   apt:
+#     autoremove: yes
+
+- name: "install node."
   become: true
   apt:
-    name: ["nodejs", "npm"]
+    name: ["nodejs"]
     state: latest
     update_cache: yes
 
 - name: "install pm2"
-  become: true
+  # become: true
   npm:
     name: pm2
     global: yes
+    # production: yes
+    # state: present
