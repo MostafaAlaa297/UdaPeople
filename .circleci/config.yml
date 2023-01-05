@@ -16,23 +16,27 @@ commands:
             unzip awscliv2.zip
             sudo ./aws/install
   install_ansible:
-    description: Install Ansible v2
+    description: Install Ansible
     steps:
       - run: 
-          name: Install Ansible v2
+          name: Install Ansible
           command: |
             sudo apt update
             sudo apt install software-properties-common
             sudo add-apt-repository --yes --update ppa:ansible/ansible
-            sudo apt install ansible
+            sudo apt install ansible -y
   install_nodejs:
-    description: Install Node.js from Nodesource
+    description: Install Node.js
     steps:
       - run:
           name: Install Node.js
           command: |
+            # Install the LTS version of node
             curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - &&\
             sudo apt-get install -y nodejs
+            # Install n version manager to use Node-13.8.0 
+            sudo npm install --global n
+            sudo n 13.8.0
   destroy-environment:
     description: Destroy backend and frontend cloudformation stacks given a workflow ID.
     parameters:
@@ -85,14 +89,14 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
-          
+
   build-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys: [build-backend]
+          keys: [backend-build]
       - run: 
           name: Build back-end
           command: |
@@ -110,7 +114,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [test-frontend]
+          keys: [frontend-build]
       - run: 
           name: Front-end test
           command: |
@@ -124,7 +128,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [test-backend]
+          keys: [backend-build]
       - run:
           name: Back-end test
           command: |
@@ -138,7 +142,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [scan-frontend]
+          keys: [frontend-build]
       - run:
           name: Scan front-end
           command: |
@@ -154,7 +158,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [scan-backend]
+          keys: [backend-build]
       - run:
           name: Scan back-end
           command: |
@@ -217,6 +221,7 @@ jobs:
               cd .circleci/ansible
               ansible-playbook -i inventory.txt configure-server.yml
         - destroy-environment
+  
   run-migrations:
     docker:
       - image: cimg/node:13.8.0
@@ -234,8 +239,41 @@ jobs:
           command: |
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
-              curl https://kvdb.io/${KVDB_BUCKET}/migration_$\{CIRCLE_WORKFLOW_ID:0:7\}  -d '1'
+              curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
+      - destroy-environment
+      - revert-migrations
+  
+  deploy-frontend:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - install_awscli
+      - install_nodejs
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: Install dependencies
+          command: |
+            cd frontend
+            npm install
+      - run:
+          name: Get backend url
+          command: |
+            BACKEND_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
+            echo "API_URL=http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
+      - run:
+          name: Deploy frontend objects
+          command: |
+            cd frontend
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment
       - revert-migrations
 workflows:
@@ -260,8 +298,8 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
+      - deploy-frontend:
+          requires: [run-migrations]
       # - deploy-backend:
       #     requires: [run-migrations]
       # - smoke-test:
