@@ -25,6 +25,14 @@ commands:
             sudo apt install software-properties-common
             sudo add-apt-repository --yes --update ppa:ansible/ansible
             sudo apt install ansible
+  install_nodejs:
+    description: Install Node.js from Nodesource
+    steps:
+      - run:
+          name: Install Node.js
+          command: |
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - &&\
+            sudo apt-get install -y nodejs
   destroy-environment:
     description: Destroy backend and frontend cloudformation stacks given a workflow ID.
     parameters:
@@ -215,13 +223,14 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
+      - install_nodejs
       - install_awscli
       - run:
           name: Run migrations
           command: |
             cd backend
             # npm install
-            npm audit fix
+            npm audit fix --force
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
       - run:
