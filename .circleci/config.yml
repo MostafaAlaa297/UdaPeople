@@ -6,7 +6,6 @@ commands:
       - slack/notify:
             event: fail
             template: basic_fail_1
- 
   install_awscli:
     description: Install AWS CLI v2
     steps:
