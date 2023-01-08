@@ -1,4 +1,14 @@
-[URL01]:
+A public git repository with your project code. [URL01]:
 https://github.com/MostafaAlaa297/UdaPeople
 
-[URL02]:
+Evidence of deployed and functioning front-end application in an S3 bucket. [URL02]:
+http://udapeople-b3dfb4e.s3-website-us-east-1.amazonaws.com
+
+Evidence of deployed and functioning front-end application in CloudFront. [URL03]:
+https://d3r8fd8hutd49u.cloudfront.net
+
+Evidence of healthy back-end application. [URL04]:
+ec2-18-205-223-93.compute-1.amazonaws.com
+
+Evidence of Prometheus Server. [URL05]:
+ec2-3-84-57-164.compute-1.amazonaws.com
