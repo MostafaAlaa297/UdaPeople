@@ -417,7 +417,8 @@ jobs:
         - run:
             name: Remove old stacks and files
             command: |
-              echo "udapeople-${OldWorkflowID}"
+              echo udapeople-${OldWorkflowID}
+              
               if [[ "${CIRCLE_WORKFLOW_ID:0:7}" =~ "${OldWorkflowID}" ]]
               then
                 echo "____________________DELETE CONFIRMED____________________"
