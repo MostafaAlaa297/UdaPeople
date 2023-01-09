@@ -406,11 +406,9 @@ jobs:
             name: Get old stack workflow id
             command: |
               # Fetch the Old workflow ID
-              export OldWorkflowID=$(aws cloudformation \
-                      list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-                      --no-paginate --output text)
+              export OldWorkflowID=$(curl --insecure https://kvdb.io/${KVDB_BUCKET}/old_workflow_id)
               echo OldWorkflowID: "${OldWorkflowID}"
-              echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+              echo CIRCLE_WORKFLOW_ID: "${CIRCLE_WORKFLOW_ID:0:7}"
               
               # Fetch the stack names          
               export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
@@ -419,7 +417,9 @@ jobs:
         - run:
             name: Remove old stacks and files
             command: |
-              echo id: "${OldWorkflowID}"
+              # Fetch the Old workflow ID
+              export OldWorkflowID=$(curl --insecure https://kvdb.io/${KVDB_BUCKET}/old_workflow_id)
+              echo id: "$s3://udapeople-${OldWorkflowID}"
               if [[ "${CIRCLE_WORKFLOW_ID:0:7}" =~ "${OldWorkflowID}" ]]
               then
                 echo "____________________DELETE CONFIRMED____________________"
