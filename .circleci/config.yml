@@ -419,7 +419,8 @@ jobs:
             command: |
               # Fetch the Old workflow ID
               export OldWorkflowID=$(curl --insecure https://kvdb.io/${KVDB_BUCKET}/old_workflow_id)
-              echo id: "$s3://udapeople-${OldWorkflowID}"
+              echo id: "${CIRCLE_WORKFLOW_ID:0:7}"
+              
               if [[ "${CIRCLE_WORKFLOW_ID:0:7}" =~ "${OldWorkflowID}" ]]
               then
                 echo "____________________DELETE CONFIRMED____________________"
